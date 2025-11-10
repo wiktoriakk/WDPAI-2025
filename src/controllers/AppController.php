@@ -1,26 +1,36 @@
 <?php
 
+
 class AppController {
 
-    protected function render(string $template = null, array $variables = []) {
-
-        $templatePath = 'public/views/'. $template.'.html';
-        $templatePath404 = 'public/views/404.html';
-        $output = "";
-                 
-        if(file_exists($templatePath)){
-            // ["message" => "Hasło błedne"]
-            extract($variables);
-            // $message = "Hasło błedne"
-            
-            ob_start();
-            include $templatePath;
-            $output = ob_get_clean();
-        } else {
-            ob_start();
-            include $templatePath404;
-            $output = ob_get_clean();
-        }
-        echo $output;
+    protected function isGet(): bool
+    {
+        return $_SERVER["REQUEST_METHOD"] === 'GET';
     }
+
+    protected function isPost(): bool
+    {
+        return $_SERVER["REQUEST_METHOD"] === 'POST';
+    }
+
+    protected function render(string $template = null, array $variables = [])
+{
+    $templatePath = 'public/views/' . $template . '.html';
+    $templatePath404 = 'public/views/404.html';
+    
+    if (file_exists($templatePath)) {
+        extract($variables); // $cards lub $card będzie dostępne w widoku
+        ob_start();
+        // interpretacja PHP w pliku .html
+        eval('?>' . file_get_contents($templatePath));
+        $output = ob_get_clean();
+    } else {
+        ob_start();
+        include $templatePath404;
+        $output = ob_get_clean();
+    }
+    
+    echo $output;
+}
+
 }
