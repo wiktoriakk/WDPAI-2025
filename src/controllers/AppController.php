@@ -1,6 +1,5 @@
 <?php
 
-
 class AppController {
 
     protected function isGet(): bool
@@ -14,23 +13,23 @@ class AppController {
     }
 
     protected function render(string $template = null, array $variables = [])
-{
-    $templatePath = 'public/views/' . $template . '.html';
-    $templatePath404 = 'public/views/404.html';
-    
-    if (file_exists($templatePath)) {
-        extract($variables); // $cards lub $card będzie dostępne w widoku
-        ob_start();
-        // interpretacja PHP w pliku .html
-        eval('?>' . file_get_contents($templatePath));
-        $output = ob_get_clean();
-    } else {
-        ob_start();
-        include $templatePath404;
-        $output = ob_get_clean();
+    {
+        $templatePath = 'public/views/' . $template . '.html';
+        $templatePath404 = 'public/views/404.html';
+        
+        // Extract variables so they're available in the template
+        extract($variables);
+        
+        if (file_exists($templatePath)) {
+            ob_start();
+            include $templatePath;
+            $output = ob_get_clean();
+        } else {
+            ob_start();
+            include $templatePath404;
+            $output = ob_get_clean();
+        }
+        
+        echo $output;
     }
-    
-    echo $output;
-}
-
 }

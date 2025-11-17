@@ -44,7 +44,7 @@ class DashboardController extends AppController {
     ];
 
     public function index() {
-        return $this->render("dashboard", ['cards' => $this->cardsData]);
+        $this->render("dashboard", ['cards' => $this->cardsData]);
     }
 
     public function show($id) {
@@ -59,9 +59,9 @@ class DashboardController extends AppController {
 
         // Wyświetl dashboard z pojedynczą kartą lub wszystkie karty jeśli nie znaleziono
         if ($card) {
-            return $this->render("dashboard", ['cards' => [$card]]);
+            $this->render("dashboard", ['cards' => [$card]]);
         } else {
-            return $this->render("dashboard", ['cards' => $this->cardsData]);
+            $this->render("dashboard", ['cards' => $this->cardsData]);
         }
     }
 }
