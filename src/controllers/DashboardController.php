@@ -11,6 +11,8 @@ class DashboardController extends AppController {
         $userRepository = new UserRepository();
         $users = $userRepository->getUsers();
 
+        var_dump($users);
+        
         return $this->render("dashboard", [
             'cards' => $cards,
             'users' => $users
