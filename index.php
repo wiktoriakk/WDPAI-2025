@@ -7,7 +7,6 @@ $path = parse_url($path, PHP_URL_PATH);
 $path = trim($path, '/');
 
 //var_dump($path);
-//die();
 
 Routing::run($path);
 ?>
