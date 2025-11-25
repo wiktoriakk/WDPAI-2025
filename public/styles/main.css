@@ -26,10 +26,12 @@ nav > ul {
 }
 
 main {
-    background-color: cornflowerblue;
+    background-color: bisque;
 }
 
-
+.message {
+    color: red;
+}
 aside {
     background-color: darkgrey;
 }

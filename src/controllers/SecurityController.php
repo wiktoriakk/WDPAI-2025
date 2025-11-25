@@ -34,7 +34,6 @@ class SecurityController extends AppController {
         // }
         // return $this->render("login", ["error" => "Nieprawidłowe dane logowania"]);
 
-         $this->render("dashboard");
     }
 
     public function register() {
