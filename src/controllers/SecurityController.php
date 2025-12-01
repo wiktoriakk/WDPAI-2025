@@ -1,39 +1,46 @@
 <?php
 
 require_once 'AppController.php';
-
+require_once __DIR__.'/../repository/UserRepository.php';
 
 class SecurityController extends AppController {
 
+    private UserRepository $userRepository;
+
+    public function __construct() {
+        $this->userRepository = new UserRepository();
+    }
+
     public function login() {
 
-        if($this->isGet()) {
+        if ($this->isGet()) {
             return $this->render("login");
-        } 
+        }
 
         $email = $_POST["email"] ?? '';
         $password = $_POST["password"] ?? '';
 
-        // TODO: Implementacja weryfikacji użytkownika z bazą danych
-        // 1. Połączenie z bazą danych (PDO/MySQLi)
-        // 2. Przygotowanie zapytania SELECT z email
-        // 3. Weryfikacja hasła (password_verify)
-        // 4. Utworzenie sesji dla zalogowanego użytkownika
-        // 5. Przekierowanie do dashboard
-        
-        // Tymczasowa implementacja - tylko dla developmentu
-        var_dump($email, $password);
-        
-        // Po implementacji bazy danych:
-        // if ($user = $this->getUserByEmail($email)) {
-        //     if (password_verify($password, $user['password_hash'])) {
-        //         $_SESSION['user_id'] = $user['id'];
-        //         header('Location: /dashboard');
-        //         exit;
-        //     }
-        // }
-        // return $this->render("login", ["error" => "Nieprawidłowe dane logowania"]);
+        if (empty($email) || empty($password)) {
+            return $this->render('login', ['message' => 'Fill all fields!']);
+        }
 
+        // pobranie użytkownika z bazy
+        $userRow = $this->userRepository->getByEmail($email);
+
+        if (!$userRow) {
+            return $this->render('login', ['message' => 'User not found']);
+        }
+
+        if (!password_verify($password, $userRow['password'])) {
+            return $this->render('login', ['message' => 'Wrong password']);
+        }
+
+        // TODO sesja lub token
+        // $_SESSION['user'] = $userRow['id'];
+
+        $url = "http://$_SERVER[HTTP_HOST]";
+        header("Location: {$url}/dashboard");
+        exit;
     }
 
     public function register() {
@@ -48,48 +55,33 @@ class SecurityController extends AppController {
         $firstname = $_POST["firstname"] ?? '';
         $lastname = $_POST["lastname"] ?? '';
 
-        // Walidacja danych
-        $errors = [];
-        
-        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Nieprawidłowy adres email";
+        // Walidacja
+        if (empty($email) || empty($password1) || empty($password2) || empty($firstname)) {
+            return $this->render('register', ['message' => 'Fill all fields']);
         }
-        
-        if (empty($password1) || strlen($password1) < 8) {
-            $errors[] = "Hasło musi mieć minimum 8 znaków";
-        }
-        
+
         if ($password1 !== $password2) {
-            $errors[] = "Hasła nie są identyczne";
-        }
-        
-        if (empty($firstname) || empty($lastname)) {
-            $errors[] = "Imię i nazwisko są wymagane";
+            return $this->render('register', ['message' => 'Passwords should be the same!']);
         }
 
-        if (!empty($errors)) {
-            return $this->render("register", ["errors" => $errors]);
+        // sprawdzenie czy email istnieje w bazie
+        if ($this->userRepository->getByEmail($email)) {
+            return $this->render('register', ['message' => 'Email already exists!']);
         }
 
-        // TODO: Implementacja zapisu do bazy danych
-        // 1. Sprawdzenie czy email nie istnieje już w bazie
-        // 2. Zahashowanie hasła (password_hash)
-        // 3. INSERT do tabeli users (email, password_hash, firstname, lastname, created_at)
-        // 4. Obsługa błędów bazy danych
-        
-        // Po implementacji bazy danych:
-        // $passwordHash = password_hash($password1, PASSWORD_DEFAULT);
-        // try {
-        //     $stmt = $pdo->prepare("INSERT INTO users (email, password_hash, firstname, lastname, created_at) VALUES (?, ?, ?, ?, NOW())");
-        //     $stmt->execute([$email, $passwordHash, $firstname, $lastname]);
-        //     return $this->render("login", ["message" => "Zarejestrowano użytkownika $email"]);
-        // } catch (PDOException $e) {
-        //     if ($e->getCode() == 23000) { // Duplicate entry
-        //         return $this->render("register", ["errors" => ["Email już istnieje w bazie"]]);
-        //     }
-        //     return $this->render("register", ["errors" => ["Błąd podczas rejestracji"]]);
-        // }
+        // hashowanie
+        $hashedPassword = password_hash($password1, PASSWORD_BCRYPT);
 
-        return $this->render("login", ["message" => "Zarejestrowano użytkownika ".$email]);
+        // zapis do bazy
+        $this->userRepository->createUser(
+            $email,
+            $hashedPassword,
+            $firstname,
+            $lastname
+        );
+
+        return $this->render("login", [
+            'messages' => ['User registered successfully! Please log in.']
+        ]);
     }
 }
